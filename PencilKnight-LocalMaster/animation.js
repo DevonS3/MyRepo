@@ -22,7 +22,8 @@ define([
         */
         class Animation {
         
-            constructor(spriteSheet, frameDimensions, row, sheetWidth, frameDuration, frames, loop, scale, columnOffset = 0, sprinfo = null, jsondata=null) {
+            constructor(spriteSheet, frameDimensions, row, sheetWidth, frameDuration, frames, loop, scale, columnOffset = 0, sprinfo = null, jsondata = null) {
+
                 this.spriteSheet = spriteSheet;
                 this.frameWidth = frameDimensions[0];
                 this.frameDuration = frameDuration;
@@ -34,14 +35,19 @@ define([
                 this.totalTime = frameDuration * frames;
                 this.elapsedTime = 0;
                 this.loop = loop;
+                this.pause = false;
                 this.scale = scale;
                 if (sprinfo) {
                     this.sprinfo = sprinfo;
                 }
             }
 
-            drawFrame (tick, ctx, x, y, facingRight) {
-                this.elapsedTime += tick;
+            drawFrame(tick, ctx, x, y, facingRight) {
+                if (this.pause) {
+                    this.elapsedTime += 0;
+                } else {
+                    this.elapsedTime += tick;
+                }
                 if (this.isDone()) {
                     if (this.loop) this.elapsedTime = 0;
                 }
@@ -97,7 +103,7 @@ define([
             }
 
             isDone () {
-                return (this.elapsedTime >= this.totalTime);
+                return (this.elapsedTime >= this.totalTime - 1);
             }
     }
 

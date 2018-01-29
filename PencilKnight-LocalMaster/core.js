@@ -40,7 +40,7 @@ define([
         gameEngine.addEntity(new Entity.Hero(gameEngine, 200, 500, ASSET_MANAGER.getAsset("img/ZXe.png"), ctx));
         gameEngine.addEntity(new Entity.Leo(gameEngine, 200, 150, ASSET_MANAGER.getAsset("img/Leo.png"), ctx));
         gameEngine.addEntity(new Entity.Flames(gameEngine, 200, 700, ASSET_MANAGER.getAsset("img/Leo.png"), ctx));
-        gameEngine.addEntity(new Entity.Soldier(gameEngine, 200, 50, ASSET_MANAGER.getAsset("img/EnemySheet1.png"), ctx));
+        gameEngine.addEntity(new Entity.Soldier(gameEngine, 100, 0, ASSET_MANAGER.getAsset("img/EnemySheet1.png"), ctx));
 
         gameEngine.init(ctx);
         gameEngine.start();

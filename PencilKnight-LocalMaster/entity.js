@@ -292,91 +292,159 @@ define([
             this.scale = scale;
             this.spriteWidth = spriteWidth;
             this.spriteHeight = spriteHeight;
+            this.timerStart = Date.now();
             //Contains detailed spritesheet info: [FWidth, FHeight, Row, Column, Frames (sheet width)]
             this.sprinfo = [//each five-tuple is from a row of the sprite sheet
                 [80, 60, 0, 0, 7], [50, 70, 1, 0, 5],
                 [70, 70, 2, 0, 8], [70, 80, 3, 0, 11]
             ];
 
+            this.anim1 = {
+                "phase1": new animPhase(0, 80, 60, 1, 3, 0),
+                "phase2": new animPhase(0, 80, 60, 4, 7, 4),
+                "phase3": new animPhase(3, 70, 80, 1, 4, 0),
+                "phase4": new animPhase(3, 70, 80, 5, 11, 5),
+            }
+            this.anim2 = {
+                "phase1": new animPhase()
+            }
+
             //Actor States
             this.states = { //DS3: These state and animation names are tentative.
-                "lunging": false, //arr 0; 1-3, 4-7
+                "lunging": true, //arr 0; 1-3, 4-7
                 "evading": false, //arr 1; 1
-                "firelunging": true, //arr 2; 1-2, 3-6, 7-8
+                "firelunging": false, //arr 2; 1-2, 3-6, 7-8
                 "attacking": false, //arr 3; 7-10
                 "grappling": false, //arr 3; 1-4
+                "demoloop": true,
                 "facingRight": false,
             };
 
             this.animations = {//row, sheetWidth, frameDuration, frames, loop, scale, phaseInfo = null, jsondata=null
                 "lunge": new Animation(this.img, [this.sprinfo[0][0], this.sprinfo[0][1]], this.sprinfo[0][2], this.sprinfo[0][4], 7, 7, false, this.scale),
                 "attack": new Animation(this.img, [this.sprinfo[3][0], this.sprinfo[3][1]], this.sprinfo[3][2], this.sprinfo[3][4], 7, 11, false, this.scale),
-                "firelunge": new Animation(this.img, [this.sprinfo[2][0], this.sprinfo[2][1]], this.sprinfo[2][2], this.sprinfo[2][4], 7, 8, true, this.scale),
+                "firelunge": new Animation(this.img, [this.sprinfo[2][0], this.sprinfo[2][1]], this.sprinfo[2][2], this.sprinfo[2][4], 7, 8, false, this.scale),
                 "idle": new Animation(this.img, [this.sprinfo[0][0], this.sprinfo[0][1]], this.sprinfo[0][2], this.sprinfo[0][4], 100, 1, true, this.scale),
             };
             this.animation = this.animations.lunge;
         }
 
-        update() {
+        animPhase(row, width, height, start, stop, offset) {
+            var row = row;
+            var height = height;
+            var width = width;
+            var start = start;
+            var stop = stop;
+            var offset = offset;
+        }   
 
-            if (this.states.lunging && !this.states.attacking && this.animation) {
-                var phaseIndex = 0
-                this.spriteHeight = this.sprinfo[phaseIndex][0];
-                this.spriteWidth = this.sprinfo[phaseIndex][1];
-                if (this.animation.currentFrame > 3) {
-                    this.x += this.movementSpeed;
+        update() {
+            if (this.states.demoloop) {
+                //lunge/shoulder
+                if (this.states.lunging && !this.states.attacking && this.animation) {
+                    var phaseIndex = 0
+                    this.spriteHeight = this.sprinfo[phaseIndex][0];
+                    this.spriteWidth = this.sprinfo[phaseIndex][1];
+                    if (this.animation.currentFrame() > 3) {
+                        this.x += this.movementSpeed;
+                    }
+                    if (this.animation.isDone()) {
+                        this.animation.elapsedTime = 0;
+                        this.states.lunging = false;
+                        this.states.attacking = true;
+                        this.y -= 40;
+                    }
                 }
-                if (this.animation.isDone) {
-                    this.animation.elapsedTime = 0;
-                    this.states.lunging = false;
-                    this.states.attacking = true;
-                    this.y -= 40;
-                }
-                console.log("lunging");
-            }
-            else if (!this.states.lunging && this.states.attacking && this.animation) {
-                var phaseIndex = 3;
-                this.spriteHeight = this.sprinfo[phaseIndex][0];
-                this.spriteWidth = this.sprinfo[phaseIndex][1];
-                //This will potentially be used to flag different levels of "vulnerability" (ex: counterable)
-                if (this.animation.isDone) {
-                    this.animation.elapsedTime = 0;
-                    this.states.lunging = false;
-                    this.states.attacking = false;
-                    this.spriteHeight = 60;
-                    this.spriteWidth = 80;
-                    console.log("animation done");
-                }
-                console.log("attacking");
-            }
-            else if (this.states.firelunging) {
-                var phaseIndex = 2;
-                this.spriteHeight = this.sprinfo[phaseIndex][0];
-                this.spriteWidth = this.sprinfo[phaseIndex][1];
-                if (this.animation.elapsedTime > this.animation.frameDuration * 2 && this.animation.elapsedTime < this.animation.frameDuration * 5) {
-                    this.x += this.movementSpeed;
-                }
-                if (this.animation.elapsedTime >= this.animation.frameDuration * this.animation.frames - 1) {
-                    this.x = this.origX;
-                }
-            }
-            else {
-                //will eventually revert to some set of default states
-                console.log("End Animation Loop!");
-                this.spriteHeight = 60;
-                this.spriteWidth = 80;
-                    if (/*this.animation.isDone*/1) {
-                        this.states.lunging = true;
+                else if (!this.states.lunging && this.states.attacking && this.animation) {
+                    var phaseIndex = 3;
+                    this.spriteHeight = this.sprinfo[phaseIndex][0];
+                    this.spriteWidth = this.sprinfo[phaseIndex][1];
+                    if (this.animation.isDone()) {
+                        this.animation.elapsedTime = 0;
+                        this.states.lunging = false;
                         this.states.attacking = false;
-                        this.animations = {
-                            "lunge": new Animation(this.img, [this.sprinfo[0][0], this.sprinfo[0][1]], this.sprinfo[0][2], this.sprinfo[0][4], 7, 7, false, this.scale),
-                            "attack": new Animation(this.img, [this.sprinfo[3][0], this.sprinfo[3][1]], this.sprinfo[3][2], this.sprinfo[3][4], 7, 11, false, this.scale),
-                            "idle": new Animation(this.img, [this.sprinfo[0][0], this.sprinfo[0][1]], this.sprinfo[0][2], this.sprinfo[0][4], 100, 1, false, this.scale),
-                        };
+                        this.states.firelunging = true;
+                        this.timerStart = Date.now();
+                        this.spriteHeight = 60;
+                        this.spriteWidth = 80;
+                        console.log("HERE");
+                        this.y += 30
+                    }
+                }
+                else if (this.states.firelunging) {
+                    this.animation = this.animations.firelunge;
+                    var phaseIndex = 2;
+                    this.spriteHeight = this.sprinfo[phaseIndex][0];
+                    this.spriteWidth = this.sprinfo[phaseIndex][1];
+                    if (this.animation.currentFrame() > 2 && this.animation.currentFrame() < 5) {
+                        this.x += this.movementSpeed;
+                    }
+                    if (this.animation.isDone()) {
+                        this.animation.elapsedTime = 0;
                         this.x = this.origX;
                         this.y = this.origY;
-                    }
+                        this.states.firelunging = false;
+                        this.states.lunging = true;
+                        this.states.attacking = false;
+                    }                    
+                }
+
+                //fire lunge
             }
+            //else if (this.states.lunging && !this.states.attacking && this.animation) {
+            //    var phaseIndex = 0
+            //    this.spriteHeight = this.sprinfo[phaseIndex][0];
+            //    this.spriteWidth = this.sprinfo[phaseIndex][1];
+            //    if (this.animation.currentFrame > 3) {
+            //        this.x += this.movementSpeed;
+            //    }
+            //    if (this.animation.isDone()) {
+            //        this.animation.elapsedTime = 0;
+            //        this.states.lunging = false;
+            //        this.states.attacking = true;
+            //        this.y -= 40;
+            //    }
+            //    console.log("lunging");
+            //}
+            //else if (!this.states.lunging && this.states.attacking && this.animation) {
+            //    var phaseIndex = 3;
+            //    this.spriteHeight = this.sprinfo[phaseIndex][0];
+            //    this.spriteWidth = this.sprinfo[phaseIndex][1];
+            //    //This will potentially be used to flag different levels of "vulnerability" (ex: counterable)
+            //    if (this.animation.isDone()) {
+            //        this.animation.elapsedTime = 0;
+            //        this.states.lunging = false;
+            //        this.states.attacking = false;
+            //        this.spriteHeight = 60;
+            //        this.spriteWidth = 80;
+            //        console.log("animation done");
+            //    }
+            //    console.log("attacking");
+            //}
+            //else if (this.states.firelunging) {
+            //    var phaseIndex = 2;
+            //    this.spriteHeight = this.sprinfo[phaseIndex][0];
+            //    this.spriteWidth = this.sprinfo[phaseIndex][1];
+            //    if (this.animation.currentFrame() > 2 && this.animation.currentFrame() < 5) {
+            //        this.x += this.movementSpeed;
+            //    }
+            //    if (this.animation.elapsedTime >= this.animation.totalTime - 1) {
+            //        this.animation.elapsedTime = 0;
+            //        this.x = this.origX;
+            //    }
+            //}
+            //else {
+            //    //will eventually revert to some set of default states
+            //    console.log("End Animation Loop!");
+            //    this.spriteHeight = 60;
+            //    this.spriteWidth = 80;
+            //        if (/*this.animation.isDone*/1) {
+            //            this.states.lunging = true;
+            //            this.states.attacking = false;
+            //            this.x = this.origX;
+            //            this.y = this.origY;
+            //        }
+            //}
 
         };
 
@@ -419,21 +487,20 @@ define([
         }
 
         update() {
+
             if (this.states.running) {
                 this.animation = this.animations.run;
                 if (!this.states.facingRight) {
                     this.x += this.movementSpeed;
                     if (this.x > 450) {
-                        this.animation = new Animation(this.img, [this.spriteWidth, this.spriteHeight], 0, 8, 7, 4, true, this.scale, 4);
-                        console.log("ran off right");
-                        this.facingRight = true;
+                        this.states.facingRight = true;
                     }
                 }
                 else if (this.states.facingRight) {
                     this.x -= this.movementSpeed;
-                    if (this.x < 100)
-                        console.log("ran off left");
-                        this.facingRight = false;
+                    if (this.x < 100) {
+                        this.states.facingRight = false;
+                    }
                 }
                 
 
@@ -441,9 +508,6 @@ define([
             else if (this.states.demo && this.animation.currentFrame() >= 5) {
                 this.x += this.movementSpeed;
             }
-            //if (this.animation.elapsedTime >= this.animation.totalTime - 1) {
-            //    this.x = this.origX;
-            //}
         };
 
         draw(ctx) {
@@ -461,13 +525,14 @@ define([
             this.spriteHeight = spriteHeight;
 
             this.states = { "active": false, "facingRight": false, };
-            this.animations = { "demo": new Animation(this.img, [this.spriteWidth, this.spriteHeight], 8, 9, 15, 9, true, this.scale) };
+            this.animations = { "demo": new Animation(this.img, [this.spriteWidth, this.spriteHeight], 8, 9, 10, 9, true, this.scale) };
             this.animation = this.animations.demo;
         }
 
         update() {
             //TODO
-            if (this.animation.elapsedTime >= this.animation.totalTime - 1) {
+            if (this.isDone) {
+                this.elapsedTime = 0;
                 this.x = this.origX;
                 this.y = this.origY;
             }
