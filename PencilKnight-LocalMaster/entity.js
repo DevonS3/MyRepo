@@ -410,7 +410,7 @@ define([
             this.spriteWidth = spriteWidth;
             this.spriteHeight = spriteHeight;
 
-            this.states = { "demo": false, "running": true, "facingRight": true, };
+            this.states = { "demo": false, "running": true, "facingRight": false, };
             this.animations = {
                 "demo": new Animation(this.img, [this.spriteWidth, this.spriteHeight], 0, 8, 7, 8, true, this.scale),
                 "run": new Animation(this.img, [this.spriteWidth, this.spriteHeight], 0, 8, 7, 4, true, this.scale, 4)
@@ -424,6 +424,7 @@ define([
                 if (!this.states.facingRight) {
                     this.x += this.movementSpeed;
                     if (this.x > 450) {
+                        this.animation = new Animation(this.img, [this.spriteWidth, this.spriteHeight], 0, 8, 7, 4, true, this.scale, 4);
                         console.log("ran off right");
                         this.facingRight = true;
                     }
